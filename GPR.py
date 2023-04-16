@@ -27,7 +27,7 @@ class GPR:
     def predict(self,x_star):
         k_star = self.cov_func(self.x_train,x_star)
         f_mean = np.dot(np.dot(np.transpose(k_star),self.K_inv),self.f)
-        f_std = self.cov_func(x_star, x_star) - np.dot(np.dot(np.transpose(k_star),self.K_inv),k_star)+np.eye(x_star.shape[0])*(self.sigma_n**2)
+        f_std = self.cov_func(x_star, x_star) - np.dot(np.dot(np.transpose(k_star),self.K_inv),k_star)
         f_std = np.sqrt(np.diag(f_std))[:,np.newaxis]
         return [f_mean,f_std]
 
@@ -35,7 +35,7 @@ class GPR:
     def predict_original(self,x_star):
         k_star = self.cov_func(self.x_train,x_star)
         y_mean = np.dot(np.dot(np.transpose(k_star),self.K_inv),self.y_train)
-        y_std = self.cov_func(x_star, x_star) - np.dot(np.dot(np.transpose(k_star),self.K_inv),k_star)+np.eye(x_star.shape[0])*(self.sigma_n**2)
+        y_std = self.cov_func(x_star, x_star) - np.dot(np.dot(np.transpose(k_star),self.K_inv),k_star)
         y_std = np.sqrt(np.diag(y_std))[:,np.newaxis]
         return [y_mean,y_std]
 
@@ -47,7 +47,7 @@ class GPR:
         d = np.sqrt(np.clip(d, 0, np.inf))
 
         if self.cov_function_name == "Squared Exponential":
-            K = self.hyper_params[0]* np.exp(-0.5 * (d**2)/self.hyper_params[1])
+            K = self.hyper_params[0]* np.exp(-0.5 * (d/self.hyper_params[1])**2)
 
         if self.cov_function_name == "Matern":
 
