@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.optimize import minimize
 
 class GPR: 
     def __init__(self,cov_function_name, x_train, y_train, hyper_params, sigma_n, warp_params = None, nu=None):
@@ -10,17 +11,19 @@ class GPR:
         self.K = self.cov_func(self.x_train,self.x_train)
         self.sigma_n = sigma_n
         self.K_inv = np.linalg.pinv(self.K+np.eye(self.K.shape[0])*(self.sigma_n**2))
-        if warp_params is None:
+        self.warp_params = warp_params
+        if self.warp_params is None:
             self.f = y_train
             self.df_dy = 1
         else:
             self.gamma = warp_params
+            self.I = len(self.gamma[0])
             self.f = 0
             self.df_dy = 0
             self.a0 = self.gamma[0]
             self.b0 = self.gamma[1]
             self.c0 = self.gamma[2]
-            for i in range(len(self.gamma[0])):
+            for i in range(self.I):
                 self.f += self.a0[i] * np.tanh(self.b0[i] * (y_train + self.c0[i])) 
                 self.df_dy += self.a0[i] * self.b0[i] * (1 - np.tanh(self.b0[i] * (y_train + self.c0[i])) ** 2)
 
@@ -95,3 +98,40 @@ class GPR:
         lml2 = -.5*np.log(np.linalg.det(self.K+np.eye(self.K.shape[0])*(self.sigma_n**2)))
         lml3 = -.5*self.x_train.shape[0]*np.log(2*np.pi)
         return lml1+lml2+lml3
+
+    def fit(self):
+        if self.warp_params is None:
+            def obj_func(params):
+                params = np.exp(params)
+                self.set_hyper_params([self.hyper_params[0],params[0]], self.sigma_n)
+                nlml = -self.log_marginal_likelihood()
+                print(str(params)+str(nlml))
+                return nlml
+
+            x0 = np.array([np.log(self.hyper_params[1])])
+            res = minimize(obj_func, x0, method='nelder-mead', 
+                        options={'xatol': 1e-10, 'disp': True})
+            self.optimal_params = np.exp(res.x)
+            self.set_hyper_params([1,self.optimal_params[0]],self.sigma_n)
+        else:
+            def obj_func(params):
+                params = np.exp(params)
+                a = [params[1+3*i] for i in range(self.I)]
+                b = [params[2+3*i] for i in range(self.I)]
+                c = [params[3+3*i] for i in range(self.I)]
+                self.set_hyper_params([self.hyper_params[0],params[0]], self.sigma_n, [a,b,c])
+                nlml = -self.log_marginal_likelihood()
+                print(str(params)+str(nlml))
+                return nlml
+
+            x0 = np.array([np.log(self.hyper_params[1])] +  [val for i in range(self.I) for val in [np.log(self.a0[i]), np.log(self.b0[i]), np.log(self.c0[i])]])
+            res = minimize(obj_func, x0, method='powell', 
+                        options={'xatol': 1e-10, 'disp': True})
+            
+
+            self.optimal_params = np.exp(res.x)        
+            a = [self.optimal_params[1+3*i] for i in range(self.I)]
+            b = [self.optimal_params[2+3*i] for i in range(self.I)]
+            c = [self.optimal_params[3+3*i] for i in range(self.I)]
+            self.set_hyper_params([1,self.optimal_params[0]], self.sigma_n, [a,b,c])
+        return self.optimal_params
