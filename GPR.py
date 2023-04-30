@@ -110,7 +110,7 @@ class GPR:
 
             x0 = np.array([np.log(self.hyper_params[1])])
             res = minimize(obj_func, x0, method='nelder-mead', 
-                        options={'xatol': 1e-10, 'disp': True})
+                        options={'xatol': 1e-2, 'disp': True})
             self.optimal_params = np.exp(res.x)
             self.set_hyper_params([1,self.optimal_params[0]],self.sigma_n)
         else:
