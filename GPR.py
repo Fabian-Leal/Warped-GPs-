@@ -109,9 +109,9 @@ class GPR:
                 return nlml
 
             x0 = np.array([np.log(self.hyper_params[1])])
-            res = minimize(obj_func, x0, method='nelder-mead', 
+            self.res = minimize(obj_func, x0, method='nelder-mead', 
                         options={'xatol': 1e-2, 'disp': True})
-            self.optimal_params = np.exp(res.x)
+            self.optimal_params = np.exp(self.res.x)
             self.set_hyper_params([1,self.optimal_params[0]],self.sigma_n)
         else:
             def obj_func(params):
@@ -125,13 +125,14 @@ class GPR:
                 return nlml
 
             x0 = np.array([np.log(self.hyper_params[1])] +  [val for i in range(self.I) for val in [np.log(self.a0[i]), np.log(self.b0[i]), np.log(self.c0[i])]])
-            res = minimize(obj_func, x0, method='powell', 
+            self.res = minimize(obj_func, x0, method='powell', 
                         options={'xatol': 1e-10, 'disp': True})
             
 
-            self.optimal_params = np.exp(res.x)        
+            self.optimal_params = np.exp(self.res.x)        
             a = [self.optimal_params[1+3*i] for i in range(self.I)]
             b = [self.optimal_params[2+3*i] for i in range(self.I)]
             c = [self.optimal_params[3+3*i] for i in range(self.I)]
             self.set_hyper_params([1,self.optimal_params[0]], self.sigma_n, [a,b,c])
+
         return self.optimal_params
