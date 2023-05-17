@@ -103,14 +103,14 @@ class GPR:
         if self.warp_params is None:
             def obj_func(params):
                 params = np.exp(params)
-                self.set_hyper_params([self.hyper_params[0],params[0]], self.sigma_n)
+                self.set_hyper_params([self.hyper_params[0],params[0]], params[1])
                 nlml = -self.log_marginal_likelihood()
-                print(str(params)+str(nlml))
+                #print(str(params)+str(nlml))
                 return nlml
  
             x0 = np.array([np.log(self.hyper_params[1]), np.log(self.sigma_n)])
-            self.res = minimize(obj_func, x0, method='BFGS', 
-                        options={'xatol': 1e-2, 'disp': True})
+            self.res = minimize(obj_func, x0, method='Powell',
+                        options={'disp': True})
             self.optimal_params = np.exp(self.res.x)
             self.set_hyper_params([1,self.optimal_params[0]],self.sigma_n)
         else:
@@ -119,21 +119,27 @@ class GPR:
                 a = [params[1+3*i] for i in range(self.I)]
                 b = [params[2+3*i] for i in range(self.I)]
                 c = [params[3+3*i] for i in range(self.I)]
-                self.set_hyper_params([self.hyper_params[0],params[0]], self.sigma_n, [a,b,c])
+                self.set_hyper_params([self.hyper_params[0],params[0]], params[1], [a,b,c])
                 nlml = -self.log_marginal_likelihood()
                 print(str(params)+str(nlml))
                 return nlml
 
-            x0 = np.array([np.log(self.hyper_params[1]), np.log(self.sigma_n)] +  [val for i in range(self.I) for val in [np.log(self.a0[i]), np.log(self.b0[i]), np.log(self.c0[i])]])
-            self.res = minimize(obj_func, x0, method='BFGS', 
-                        options={'xatol': 1e-10, 'disp': True})
-            
 
+            x0 = np.array([np.log(self.hyper_params[1]), np.log(self.sigma_n)] +  [val for i in range(self.I) for val in [np.log(self.a0[i]), np.log(self.b0[i]), np.log(self.c0[i])]])
+            self.res = minimize(obj_func, x0, method='Neldear-Mead',
+                        options={'disp': True})
+            
+        
+            
             self.optimal_params = np.exp(self.res.x)        
             a = [self.optimal_params[1+3*i] for i in range(self.I)]
             b = [self.optimal_params[2+3*i] for i in range(self.I)]
             c = [self.optimal_params[3+3*i] for i in range(self.I)]
             self.set_hyper_params([1,self.optimal_params[0]], self.sigma_n, [a,b,c])
+
+
+        return self.optimal_params
+
 
     # def fit(self):
     #     if self.warp_params is None:
