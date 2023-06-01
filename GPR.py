@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.optimize import root
 
-class GPR:
+class GaussianProcessRegressionLengthscale:
     def __init__(self, cov_function_name, x_train, y_train, hyper_params, sigma_n, warp_params=None, nu=None):
         self.cov_function_name = cov_function_name
         self.x_train = x_train
@@ -154,7 +154,7 @@ class GPR:
             #bnds += [(0, 10000), (0, 10000), (0, 10000)] * self.I  # Bounds for a, b, c
 
             x0 = np.array([np.log(self.hyper_params[1]), np.log(self.sigma_n)] +  [val for i in range(self.I) for val in [np.log(self.a[i]), np.log(self.b[i]), np.log(self.c[i])]])
-            self.res = minimize(obj_func, x0, method='Nelder-Mead', 
+            self.res = minimize(obj_func, x0, method='Powell', 
                         options={'disp': True})
             
         
