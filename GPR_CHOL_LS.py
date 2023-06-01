@@ -64,7 +64,7 @@ class GaussianProcessRegressionLengthscaleCholesky:
         alpha = cho_solve(self.L, self.f)
         f_mean = np.dot(k_star.T, alpha)
         v = cho_solve(self.L, k_star)
-        f_std = np.sqrt(np.diag(self.cov_func(x_star, x_star) - np.dot(k_star.T, v) + (self.sigma_n ** 2)))[:,np.newaxis]
+        f_std = np.sqrt(np.diag(self.cov_func(x_star, x_star) - np.dot(k_star.T, v)))[:,np.newaxis]
         return [f_mean, f_std]
 
     def predict_original(self, x_star):
@@ -72,7 +72,7 @@ class GaussianProcessRegressionLengthscaleCholesky:
         alpha = cho_solve(self.L, self.f)
         f_mean = np.dot(k_star.T, alpha)
         v = cho_solve(self.L, k_star)
-        f_cov = self.cov_func(x_star, x_star) - np.dot(k_star.T, v) + (self.sigma_n ** 2)
+        f_cov = self.cov_func(x_star, x_star) - np.dot(k_star.T, v) 
         f_std = np.sqrt(np.diag(f_cov))
         y_mean = self.inverse_hyp_tan(f_mean.reshape(-1))
         y_std = self.inverse_hyp_tan(f_std)
