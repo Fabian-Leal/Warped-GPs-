@@ -50,7 +50,7 @@ class GaussianProcessRegressionLengthscaleVariance:
 
             return result - f
 
-        result = root(equation_to_solve, f, args=(f,))
+        result = root(equation_to_solve, f, args=(f,), tol=0.1, method='lm')
 
         if result.success:
             return result.x
@@ -154,7 +154,7 @@ class GaussianProcessRegressionLengthscaleVariance:
             #bnds += [(0, 10000), (0, 10000), (0, 10000)] * self.I  # Bounds for a, b, c
 
             x0 = np.array([np.log(self.hyper_params[1]), np.log(self.sigma_n)] +  [val for i in range(self.I) for val in [np.log(self.a[i]), np.log(self.b[i]), np.log(self.c[i])]])
-            self.res = minimize(obj_func, x0, method='Powell', 
+            self.res = minimize(obj_func, x0, method='Nelder-Mead', 
                         options={'disp': True})
             
         

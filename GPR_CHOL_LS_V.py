@@ -13,7 +13,7 @@ class GaussianProcessRegressionLengthscaleVarianceCholesky:
         self.nu = nu
         self.K = self.cov_func(self.x_train, self.x_train)
         self.sigma_n = sigma_n
-        self.L = cho_factor(self.K + np.eye(self.K.shape[0]) * (self.sigma_n ** 2))
+        self.L = cho_factor(self.K + np.eye(self.K.shape[0]) * (self.sigma_n ** 2), check_finite=False)
         self.warp_params = warp_params
         if self.warp_params is None:
             self.f = y_train
@@ -63,7 +63,7 @@ class GaussianProcessRegressionLengthscaleVarianceCholesky:
         alpha = cho_solve(self.L, self.f)
         f_mean = np.dot(k_star.T, alpha)
         v = cho_solve(self.L, k_star)
-        f_std = np.sqrt(np.diag(self.cov_func(x_star, x_star) - np.dot(k_star.T, v) + (self.sigma_n ** 2)))[:,np.newaxis]
+        f_std = np.sqrt(np.diag(self.cov_func(x_star, x_star) - np.dot(k_star.T, v)))[:,np.newaxis]
         return [f_mean, f_std]
 
     def predict_original(self, x_star):
@@ -71,7 +71,7 @@ class GaussianProcessRegressionLengthscaleVarianceCholesky:
         alpha = cho_solve(self.L, self.f)
         f_mean = np.dot(k_star.T, alpha)
         v = cho_solve(self.L, k_star)
-        f_cov = self.cov_func(x_star, x_star) - np.dot(k_star.T, v) + (self.sigma_n ** 2)
+        f_cov = self.cov_func(x_star, x_star) - np.dot(k_star.T, v) 
         f_std = np.sqrt(np.diag(f_cov))
         y_mean = self.inverse_hyp_tan(f_mean.reshape(-1))
         y_std = self.inverse_hyp_tan(f_std)
@@ -103,7 +103,7 @@ class GaussianProcessRegressionLengthscaleVarianceCholesky:
         self.hyper_params = hyper_params
         self.K = self.cov_func(self.x_train, self.x_train)
         self.sigma_n = sigma_n
-        self.L = cho_factor(self.K + np.eye(self.K.shape[0]) * (self.sigma_n ** 2))
+        self.L = cho_factor(self.K + np.eye(self.K.shape[0]) * (self.sigma_n ** 2), check_finite=False)
         if warp_params is None:
             self.df_dy = 1
         else:
@@ -125,7 +125,7 @@ class GaussianProcessRegressionLengthscaleVarianceCholesky:
         lml4 = np.sum(np.log(self.df_dy))
         return lml1 + lml2 + lml3 + lml4
 
-def fit(self):
+    def fit(self):
         if self.warp_params is None:
             def obj_func(params):
                 params = np.exp(params)
@@ -148,7 +148,7 @@ def fit(self):
                 return -self.log_marginal_likelihood()
 
             x0 = np.array([np.log(self.hyper_params[1]), np.log(self.sigma_n)] +  [val for i in range(self.I) for val in [np.log(self.a[i]), np.log(self.b[i]), np.log(self.c[i])]])
-            self.res = minimize(obj_func, x0, method='Powell', 
+            self.res = minimize(obj_func, x0, method='Nelder-Mead', 
                         options={'disp': True})
             self.optimal_params = np.exp(self.res.x)        
             a = [self.optimal_params[1+3*i] for i in range(self.I)]

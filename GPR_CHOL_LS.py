@@ -14,7 +14,7 @@ class GaussianProcessRegressionLengthscaleCholesky:
         self.nu = nu
         self.K = self.cov_func(self.x_train, self.x_train)
         self.sigma_n = sigma_n
-        self.L = cho_factor(self.K + np.eye(self.K.shape[0]) * (self.sigma_n ** 2))
+        self.L = cho_factor(self.K + np.eye(self.K.shape[0]) * (self.sigma_n ** 2), check_finite=False)
         self.warp_params = warp_params
         if self.warp_params is None:
             self.f = y_train
@@ -104,7 +104,7 @@ class GaussianProcessRegressionLengthscaleCholesky:
         self.hyper_params = hyper_params
         self.K = self.cov_func(self.x_train, self.x_train)
         self.sigma_n = sigma_n
-        self.L = cho_factor(self.K + np.eye(self.K.shape[0]) * (self.sigma_n ** 2))
+        self.L = cho_factor(self.K + np.eye(self.K.shape[0]) * (self.sigma_n ** 2), check_finite=False)
         if warp_params is None:
             self.df_dy = 1
         else:
