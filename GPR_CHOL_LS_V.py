@@ -132,7 +132,7 @@ class GaussianProcessRegressionLengthscaleVarianceCholesky:
                 self.set_hyper_params([self.hyper_params[0],params[0]], self.sigma_n)
                 return -self.log_marginal_likelihood()
  
-            x0 = np.array([np.log(self.hyper_params[1])])
+            x0 = np.array([np.log(self.hyper_params[1]), np.log(self.sigma_n)])
             self.res = minimize(obj_func, x0, method='Powell',
                         options={'disp': True})
             self.optimal_params = np.exp(self.res.x)

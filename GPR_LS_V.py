@@ -134,7 +134,7 @@ class GaussianProcessRegressionLengthscaleVariance:
                 #print(str(params)+str(nlml))
                 return nlml
  
-            x0 = np.array([np.log(self.hyper_params[1])])
+            x0 = np.array([np.log(self.hyper_params[1]), np.log(self.sigma_n)])
             self.res = minimize(obj_func, x0, method='Powell',
                         options={'disp': True})
             self.optimal_params = np.exp(self.res.x)
